@@ -606,7 +606,7 @@ function HeroSection({ mousePosition }) {
             <ProfessionalButton href="#projects" primary isMobile={isMobile}>
               View Projects
             </ProfessionalButton>
-            <ProfessionalButton href="https://drive.google.com/file/d/1kPmbdDOIaX5X2ToV2MDOi43evFbp0BEZ/view?usp=sharing" isMobile={isMobile}>
+            <ProfessionalButton href="https://drive.google.com/file/d/1x-UqRhwQ8oAgWbSkZrh64bz9PCD1Dy9c/view?pli=1" isMobile={isMobile}>
               Download Resume
             </ProfessionalButton>
           </motion.div>
