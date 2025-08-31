@@ -1,0 +1,7 @@
+{
+  "name": "devops-portfolio",
+  "compatibility_date": "2025-08-31",
+  "assets": {
+    "directory": "./build"
+  }
+}
