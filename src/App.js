@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import emailjs from '@emailjs/browser';
 
 export default function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -113,6 +114,19 @@ export default function App() {
         will-change: transform;
         transform: translateZ(0);
         backface-visibility: hidden;
+      }
+
+      /* Success and error message styles */
+      .success-message {
+        background: rgba(39, 202, 63, 0.1);
+        border: 1px solid rgba(39, 202, 63, 0.3);
+        color: #27ca3f;
+      }
+
+      .error-message {
+        background: rgba(255, 95, 86, 0.1);
+        border: 1px solid rgba(255, 95, 86, 0.3);
+        color: #ff5f56;
       }
     `;
 
@@ -1706,12 +1720,15 @@ function ProjectsGalaxy() {
     </section>
   );
 }
-// Enhanced Contact Section - Mobile Optimized
+
+// Enhanced Contact Section with EmailJS - Mobile Optimized
 function ContactTerminal() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const formRef = useRef();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -1719,17 +1736,60 @@ function ContactTerminal() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleSubmit = (e) => {
+  // Initialize EmailJS
+  useEffect(() => {
+    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+    if (publicKey) {
+      emailjs.init(publicKey);
+    } else {
+      console.warn('EmailJS public key not found. Please check your environment variables.');
+    }
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // Simulate form submission
-    setTimeout(() => {
+    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+
+    // Check if all required environment variables are set
+    if (!serviceId || !templateId || !publicKey) {
+      setError("Email service is not configured properly. Please contact the administrator.");
       setLoading(false);
+      return;
+    }
+
+    try {
+      const templateParams = {
+        user_name: form.name,
+        user_email: form.email,
+        message: form.message,
+        to_email: 'anandgautam062003@gmail.com'
+      };
+
+      const result = await emailjs.send(
+        serviceId,
+        templateId,
+        templateParams,
+        publicKey
+      );
+
+      console.log('Email sent successfully:', result.text);
       setSent(true);
-      setTimeout(() => setSent(false), 3000);
       setForm({ name: "", email: "", message: "" });
-    }, 1500);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => setSent(false), 5000);
+      
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      setError("Failed to send message. Please try again or contact me directly.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const containerRef = useRef(null);
@@ -1806,25 +1866,50 @@ function ContactTerminal() {
           </div>
         </div>
 
+        {/* Success Message */}
         {sent && (
           <motion.div
+            className="success-message"
             style={{
-              color: "#27ca3f",
               textAlign: "center",
               marginBottom: "2rem",
               fontWeight: "600",
-              fontSize: isMobile ? "1rem" : "1.1rem"
+              fontSize: isMobile ? "1rem" : "1.1rem",
+              padding: "1rem",
+              borderRadius: "10px"
             }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            ✓ Message sent successfully!
+            ✓ Message sent successfully! I'll get back to you soon.
+          </motion.div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            className="error-message"
+            style={{
+              textAlign: "center",
+              marginBottom: "2rem",
+              fontWeight: "600",
+              fontSize: isMobile ? "1rem" : "1.1rem",
+              padding: "1rem",
+              borderRadius: "10px"
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onAnimationComplete={() => {
+              setTimeout(() => setError(""), 5000);
+            }}
+          >
+            ✗ {error}
           </motion.div>
         )}
 
         {/* Contact Form */}
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           <div style={{ marginBottom: "2rem" }}>
             <label
               style={{
@@ -1835,10 +1920,11 @@ function ContactTerminal() {
                 fontSize: isMobile ? "1rem" : "1.1rem",
               }}
             >
-              Name
+              Name *
             </label>
             <motion.input
               type="text"
+              name="user_name"
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -1870,10 +1956,11 @@ function ContactTerminal() {
                 fontSize: isMobile ? "1rem" : "1.1rem",
               }}
             >
-              Email
+              Email *
             </label>
             <motion.input
               type="email"
+              name="user_email"
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -1905,9 +1992,10 @@ function ContactTerminal() {
                 fontSize: isMobile ? "1rem" : "1.1rem",
               }}
             >
-              Message
+              Message *
             </label>
             <motion.textarea
+              name="message"
               required
               rows={isMobile ? 4 : 5}
               value={form.message}
@@ -1949,12 +2037,23 @@ function ContactTerminal() {
               minHeight: "44px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              gap: "0.5rem"
             }}
             whileHover={!loading ? { scale: 1.02 } : {}}
             whileTap={!loading ? { scale: 0.98 } : {}}
           >
-            {loading ? "Sending..." : "Send Message"}
+            {loading ? (
+              <>
+                <span>⏳</span>
+                Sending...
+              </>
+            ) : (
+              <>
+                <span>🚀</span>
+                Send Message
+              </>
+            )}
           </motion.button>
         </form>
 
@@ -1986,24 +2085,38 @@ function ContactTerminal() {
               fontSize: isMobile ? "1rem" : "1.1rem"
             }}
           >
-            <a
+            <motion.a
               href="mailto:anandgautam062003@gmail.com"
               style={{
                 color: "#09FFE3",
                 textDecoration: "none",
               }}
+              whileHover={{ scale: 1.05 }}
             >
               📧 Email
-            </a>
-            <a
+            </motion.a>
+            <motion.a
               href="tel:+916200961600"
               style={{
                 color: "#09FFE3",
                 textDecoration: "none",
               }}
+              whileHover={{ scale: 1.05 }}
             >
               📱 Phone
-            </a>
+            </motion.a>
+            <motion.a
+              href="https://www.linkedin.com/in/anand--gautam"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#09FFE3",
+                textDecoration: "none",
+              }}
+              whileHover={{ scale: 1.05 }}
+            >
+              💼 LinkedIn
+            </motion.a>
           </div>
         </div>
       </motion.div>
