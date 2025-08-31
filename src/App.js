@@ -680,7 +680,7 @@ function ProfessionalButton({ children, href, primary = false, isMobile = false 
       target={href.startsWith("http") ? "_blank" : "_self"}
       rel={href.startsWith("http") ? "noopener noreferrer" : ""}
       style={{
-        display: "block",
+        // display: "block",
         padding: isMobile ? "1rem 2rem" : "1rem 2rem",
         fontSize: isMobile ? "1rem" : "1rem",
         fontWeight: "600",
@@ -1694,7 +1694,7 @@ function ProjectsGalaxy() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    display: "inline-block",
+                    // display: "inline-block",
                     padding: isMobile ? "0.8rem 1.5rem" : "0.8rem 1.5rem",
                     background: `linear-gradient(45deg, ${categoryColors[project.category]}, ${categoryColors[project.category]}CC)`,
                     color: "#000",
