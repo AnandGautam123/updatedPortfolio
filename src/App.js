@@ -262,7 +262,7 @@ function Navbar() {
           }}
           whileHover={{ scale: 1.05 }}
         >
-          ANAND.DEV
+          AnandsPortfolio
         </motion.div>
         
         {/* Desktop Menu */}
